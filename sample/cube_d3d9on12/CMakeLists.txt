@@ -13,7 +13,6 @@ TARGET_COMPILE_DEFINITIONS(${TARGET} PUBLIC
 TARGET_LINK_LIBRARIES(${TARGET}
     d3d9
     d3d12
-    d3d9on12
     dxgi
     Winmm
     )

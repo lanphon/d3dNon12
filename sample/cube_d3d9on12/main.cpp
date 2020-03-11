@@ -2,6 +2,12 @@
 #include "resource.h"
 #include <DirectXMath.h>
 #include <d3d9.h>
+#include <d3d12.h>
+#include <d3d9on12.h>
+
+#include <dxgi.h>
+#include <dxgi1_4.h>
+#include <wrl/client.h>
 
 using namespace DirectX;
 
@@ -266,7 +272,11 @@ LRESULT CALLBACK WndProc( HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lPa
 bool InitDirectX( HINSTANCE hInstance, int width, int height, bool bWindowed, D3DDEVTYPE deviceType, IDirect3DDevice9** device )
 {
     // Create a Direct3D interface object
-    g_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
+    //g_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
+    D3D9ON12_ARGS args = {};
+    args.Enable9On12 = true;
+    g_pD3D = Direct3DCreate9On12(D3D_SDK_VERSION, &args, 1);
+    // Here is the only place which need to be updated
 
     if ( g_pD3D == NULL )
     {
