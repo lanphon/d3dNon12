@@ -1,0 +1,10 @@
+*.o
+*~
+*.swp
+*.swo
+build/
+build_vs/
+build_gcc/
+out/
+.vs/
+.vscode/

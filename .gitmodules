@@ -1,0 +1,6 @@
+[submodule "D3D11On12"]
+	path = D3D11On12
+	url = https://github.com/microsoft/D3D11On12.git
+[submodule "D3D12TranslationLayer"]
+	path = D3D12TranslationLayer
+	url = https://github.com/microsoft/D3D12TranslationLayer.git
