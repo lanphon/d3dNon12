@@ -1,0 +1,1 @@
+add_subdirectory(mintriangle_d3d11on12)

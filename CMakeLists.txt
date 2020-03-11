@@ -75,3 +75,6 @@ target_include_directories(${D3D11ON12}
     PRIVATE D3D11On12/external
     PUBLIC D3D11On12/interface
     PRIVATE D3D11On12/src)
+
+
+add_subdirectory(sample)
