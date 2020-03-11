@@ -1,7 +1,9 @@
 #include <windows.h>
-#include <d3d9.h>
-#include <d3dx9.h>
 #include "resource.h"
+#include <DirectXMath.h>
+#include <d3d9.h>
+
+using namespace DirectX;
 
 HWND g_MainWindowHandle = 0;
 IDirect3D9* g_pD3D = NULL;
@@ -10,7 +12,7 @@ IDirect3DDevice9* g_pD3DDevice = NULL;
 UINT g_WindowWidth = 1280;
 UINT g_WindowHeight = 720;
 
-float g_fRotateX = D3DX_PI / 4.0f;
+float g_fRotateX = XM_PI / 4.0f;
 float g_fRotateY = 0.0f;
 float g_fRotateZ = 0.0f;
 
@@ -26,14 +28,14 @@ struct VertexXYZColor
     static const DWORD VertexFormat = D3DFVF_XYZ|D3DFVF_DIFFUSE; // Flexible vertex format definition for this vertex type
 };
 
-const D3DXCOLOR WHITE   ( D3DCOLOR_XRGB( 255, 255, 255 ) );
-const D3DXCOLOR BLACK   ( D3DCOLOR_XRGB( 0, 0, 0 ) );
-const D3DXCOLOR RED     ( D3DCOLOR_XRGB( 255, 0, 0 ) );
-const D3DXCOLOR GREEN   ( D3DCOLOR_XRGB( 0, 255, 0 ) );
-const D3DXCOLOR BLUE    ( D3DCOLOR_XRGB( 0, 0, 255 ) );
-const D3DXCOLOR YELLOW  ( D3DCOLOR_XRGB( 255, 255, 0 ) );
-const D3DXCOLOR CYAN    ( D3DCOLOR_XRGB( 0, 255, 255 ) );
-const D3DXCOLOR MAGENTA ( D3DCOLOR_XRGB( 255, 0, 255 ) );
+const D3DCOLOR WHITE   ( D3DCOLOR_XRGB( 255, 255, 255 ) );
+const D3DCOLOR BLACK   ( D3DCOLOR_XRGB( 0, 0, 0 ) );
+const D3DCOLOR RED     ( D3DCOLOR_XRGB( 255, 0, 0 ) );
+const D3DCOLOR GREEN   ( D3DCOLOR_XRGB( 0, 255, 0 ) );
+const D3DCOLOR BLUE    ( D3DCOLOR_XRGB( 0, 0, 255 ) );
+const D3DCOLOR YELLOW  ( D3DCOLOR_XRGB( 255, 255, 0 ) );
+const D3DCOLOR CYAN    ( D3DCOLOR_XRGB( 0, 255, 255 ) );
+const D3DCOLOR MAGENTA ( D3DCOLOR_XRGB( 255, 0, 255 ) );
 
 // Vertices of a unit cube
 VertexXYZColor g_CubeVertexData[8] = {
@@ -201,7 +203,7 @@ int Run()
         }
     }
 
-    return msg.wParam;
+    return (int)msg.wParam;
 }
 
 LRESULT CALLBACK WndProc( HWND windowHandle, UINT msg, WPARAM wParam, LPARAM lParam )
@@ -338,19 +340,25 @@ bool Setup()
     g_CubeIndexBuffer->Unlock();
 
     // Setup the view matrix
-    D3DXVECTOR3 cameraPosition( 0.0f, 0.0f, -5.0f );
-    D3DXVECTOR3 cameraTarget( 0.0f, 0.0f, 0.0f );
-    D3DXVECTOR3 cameraUp( 0.0f, 1.0f, 0.0f );
-    D3DXMATRIX viewMatrix;
-    D3DXMatrixLookAtLH( &viewMatrix, &cameraPosition, &cameraTarget, &cameraUp );
+    XMFLOAT3 c0( 0.0f, 0.0f, -5.0f );
+    XMFLOAT3 c1(0.0f, 0.0f, 0.0f);
+    XMFLOAT3 c2( 0.0f, 1.0f, 0.0f );
+    XMVECTOR cameraPosition = XMLoadFloat3(&c0);
+    XMVECTOR cameraTarget = XMLoadFloat3(&c1);;
+    XMVECTOR cameraUp = XMLoadFloat3(&c2);;
+    XMMATRIX viewMatrix;
+    viewMatrix = DirectX::XMMatrixLookAtLH(cameraPosition, cameraTarget, cameraUp );
 
-    g_pD3DDevice->SetTransform( D3DTS_VIEW, &viewMatrix );
+    XMFLOAT4X4 viewMatrix2;
+    XMStoreFloat4x4(&viewMatrix2, viewMatrix);
+    g_pD3DDevice->SetTransform( D3DTS_VIEW, (D3DMATRIX*)&viewMatrix2 );
 
     // Setup the projection matrix
-    D3DXMATRIX projectionMatrix;
-    D3DXMatrixPerspectiveFovLH( &projectionMatrix, D3DX_PI / 4, (float)g_WindowWidth / (float)g_WindowHeight, 0.1f, 100.0f );
+    XMMATRIX projectionMatrix = DirectX::XMMatrixPerspectiveFovLH(XM_PI / 4, (float)g_WindowWidth / (float)g_WindowHeight, 0.1f, 100.0f );
 
-    g_pD3DDevice->SetTransform( D3DTS_PROJECTION, &projectionMatrix );
+    XMFLOAT4X4 projectionMatrix2;
+    XMStoreFloat4x4(&projectionMatrix2, projectionMatrix);
+    g_pD3DDevice->SetTransform( D3DTS_PROJECTION, (D3DMATRIX*)&projectionMatrix );
 
     // Disable lighting
     g_pD3DDevice->SetRenderState( D3DRS_LIGHTING, false );
@@ -391,15 +399,15 @@ void Cleanup()
 void Update( float deltaTime ) 
 {
     // Rate of rotation in units/second
-    const float fRotationRateY = D3DX_PI / 4.0f;
-    const float fRotationRateZ = D3DX_PI / 2.0f;
+    const float fRotationRateY = XM_PI / 4.0f;
+    const float fRotationRateZ = XM_PI / 2.0f;
 
     g_fRotateY +=  fRotationRateY * deltaTime;
     g_fRotateZ += fRotationRateZ * deltaTime;
 
     // Clamp to the allowed range
-    g_fRotateY = fmodf( g_fRotateY, D3DX_PI * 2.0f );
-    g_fRotateZ = fmodf( g_fRotateZ, D3DX_PI * 2.0f );
+    g_fRotateY = fmodf( g_fRotateY, XM_PI * 2.0f );
+    g_fRotateZ = fmodf( g_fRotateZ, XM_PI * 2.0f );
 
     // Redraw our window
     RedrawWindow( g_MainWindowHandle, NULL, NULL, RDW_INTERNALPAINT );
@@ -413,13 +421,15 @@ void Render()
     }
 
     // Setup our world matrix based on the rotation parameters
-    D3DXMATRIX rotateX, rotateY, rotateZ;
-    D3DXMatrixRotationX( &rotateX, g_fRotateX );
-    D3DXMatrixRotationY( &rotateY, g_fRotateY );
-    D3DXMatrixRotationZ( &rotateZ, g_fRotateZ );
+    XMMATRIX rotateX, rotateY, rotateZ;
+    rotateX = XMMatrixRotationX(g_fRotateX );
+    rotateY = XMMatrixRotationY(g_fRotateY );
+    rotateZ = XMMatrixRotationZ(g_fRotateZ );
 
-    D3DXMATRIX worldMatrix = rotateX * rotateY * rotateZ;
-    g_pD3DDevice->SetTransform( D3DTS_WORLD, &worldMatrix );
+    XMMATRIX worldMatrix = rotateX * rotateY * rotateZ;
+    XMFLOAT4X4 worldMatrix2;
+    XMStoreFloat4x4(&worldMatrix2, worldMatrix);
+    g_pD3DDevice->SetTransform( D3DTS_WORLD, (D3DMATRIX*)&worldMatrix2 );
 
     // Render the scene
     g_pD3DDevice->Clear( 0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(55,55,55), 1.0f, 0 );
